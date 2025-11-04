@@ -11,7 +11,7 @@ RUN apt update && apt install -y \
 # Custom Desktop Background for XFCE
 # -------------------------------------------------------------------
 # Eigenes Wallpaper als Standard-Hintergrund verwenden indem das Standard-Wallpaper ersetzt wird
-COPY Docker-Background.jpg /usr/share/backgrounds/greybird.svg
+COPY Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.svg
 
 
 # User anlegen
