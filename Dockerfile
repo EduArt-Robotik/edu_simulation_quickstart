@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # -------------------------------------------------------------------
 
 # Create user
-RUN useradd -m ros -s /bin/bash && echo "ros:ros" | chpasswd && adduser ros sudo
+RUN useradd -m user -s /bin/bash && echo "user:user" | chpasswd && adduser user sudo
 USER root
 
 
@@ -43,8 +43,8 @@ RUN apt update \
 
 # Create virtual environment with python modules for edu_virtual_joy
 RUN bash -c "\
-    mkdir /home/ros/python_env -p \
-    && cd /home/ros/python_env \
+    mkdir /home/user/python_env -p \
+    && cd /home/user/python_env \
     && python3 -m venv .flet \
     && source .flet/bin/activate \
     && pip3 install flet setuptools pyyaml \
@@ -56,8 +56,8 @@ RUN bash -c "\
 # -------------------------------------------------------------------
 
 # Create Ros2 workspace
-RUN mkdir /home/ros/ros2_ws/src -p
-WORKDIR /home/ros/ros2_ws
+RUN mkdir /home/user/ros2_ws/src -p
+WORKDIR /home/user/ros2_ws
 
 # Get edu_robot package
 RUN bash -c "\
@@ -84,7 +84,7 @@ RUN bash -c "\
     && colcon build --symlink-install --packages-select edu_virtual_joy --event-handlers console_direct+"
 
 # Open virtual joystick in a window, not in the browser
-RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets_dir="assets")\ft.app(target=main, assets_dir="assets")\g' /home/ros/ros2_ws/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
+RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets_dir="assets")\ft.app(target=main, assets_dir="assets")\g' /home/user/ros2_ws/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
 
 
 # -------------------------------------------------------------------
@@ -95,9 +95,9 @@ RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets
 COPY Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.svg
 
 # VNC setup
-RUN mkdir -p /home/ros/supervisor/logs /home/ros/supervisor/run && \
-    chown -R ros:ros /home/ros/supervisor
-COPY --chown=ros:ros supervisord.conf /home/ros/supervisor/supervisord.conf
+RUN mkdir -p /home/user/supervisor/logs /home/user/supervisor/run && \
+    chown -R user:user /home/user/supervisor
+COPY --chown=user:user supervisord.conf /home/user/supervisor/supervisord.conf
 
 # Copy script to start the simulation
 COPY start-simulation.sh /usr/local/bin/start-simulation.sh
@@ -108,10 +108,10 @@ RUN chmod +x /usr/local/bin/start-simulation.sh
 # Configure the user space
 # -------------------------------------------------------------------
 
-USER ros
-WORKDIR /home/ros
-ENV HOME=/home/ros
-ENV USER=ros
+USER user
+WORKDIR /home/user
+ENV HOME=/home/user
+ENV USER=user
 
 # Configure tmux
 RUN touch ~/.tmux.conf
@@ -120,7 +120,7 @@ RUN echo "set -g mouse on" >> ~/.tmux.conf
 
 # Source ROS files
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
-RUN echo "source /home/ros/ros2_ws/install/setup.bash" >> ~/.bashrc
+RUN echo "source /home/user/ros2_ws/install/setup.bash" >> ~/.bashrc
 
 
 # -------------------------------------------------------------------
@@ -128,7 +128,7 @@ RUN echo "source /home/ros/ros2_ws/install/setup.bash" >> ~/.bashrc
 # -------------------------------------------------------------------
 
 # Set Python environment
-ENV PYTHONPATH='/home/ros/python_env/.flet/lib/python3.12/site-packages'
+ENV PYTHONPATH='/home/user/python_env/.flet/lib/python3.12/site-packages'
 
 # Enable color on command prompt
 ENV TERM=xterm-256color
