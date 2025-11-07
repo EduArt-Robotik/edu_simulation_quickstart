@@ -1,20 +1,14 @@
+
+
 services:
-  ros2-simulation:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+  ros2-vnc:
+    image: ros2-vnc
     container_name: ros2-vnc
-    user: user
-    environment:
-      - ROS_DOMAIN_ID=0
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     ports:
       - "8080:8080"
       - "5900:5900"
-    #  - "7400-7743:7400-7743"
-    #network_mode: host
     shm_size: "2g"
-    tty: true
-    stdin_open: true
+    tty: true        # entspricht -t
+    stdin_open: true # entspricht -i
     restart: unless-stopped
     command: bash -c '/usr/bin/supervisord -c /home/user/supervisor/supervisord.conf'
