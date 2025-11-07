@@ -16,14 +16,23 @@ USER root
 # -------------------------------------------------------------------
 
 RUN apt update &&  apt install -y \
-    tmux git openssh-client gdb build-essential
+    tmux git openssh-client gdb build-essential software-properties-common swig
 
 RUN apt-get update && apt-get install -y \
-        python3-pip python3.12-venv
+    python3-pip python3.12-venv python3-pip
 
 RUN apt update && apt install -y \
     xfce4 xfce4-terminal x11vnc xvfb novnc websockify supervisor dbus-x11 \
     sudo net-tools curl wget
+
+# Install GPIO MRAA lib for edu_robot_control_template
+# Build and install MRAA from source
+RUN git clone https://github.com/eclipse/mraa.git /opt/mraa \
+    && cd /opt/mraa && mkdir build && cd build \
+    && cmake .. -DBUILDSWIGPYTHON=ON \
+    && make -j$(nproc) && make install \
+    && ldconfig \
+    && rm -rf /opt/mraa
 
 # Install edu_robot dependencies
 RUN apt update \
@@ -39,7 +48,6 @@ RUN apt update \
     ros-jazzy-ros-gz \
     ros-jazzy-xacro \
     ros-jazzy-rviz2
-
 
 # Create virtual environment with python modules for edu_virtual_joy
 RUN bash -c "\
@@ -70,6 +78,12 @@ RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
     && git clone https://github.com/EduArt-Robotik/edu_robot_control.git src/edu_robot_control\
     && colcon build --symlink-install --packages-select edu_robot_control --event-handlers console_direct+"
+
+# Get edu_robot_control_template package
+RUN bash -c "\
+    source /opt/ros/jazzy/setup.bash \
+    && git clone -b master https://github.com/EduArt-Robotik/edu_robot_control_template.git src/edu_robot_control_template\
+    && colcon build --symlink-install --packages-select edu_robot_control_template --event-handlers console_direct+"
 
 # Get edu_simulation package
 RUN bash -c "\
