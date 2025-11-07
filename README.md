@@ -8,13 +8,13 @@ docker build --platform=linux/amd64 -t ros2-vnc .
 
 ## Running with Quickstart Skript
 ```
-docker compose -f docker-compose.run.yml up
+docker compose -f docker-compose.yml up
 ```
 
 if container already exists:
 ```
-docker compose -f docker-compose.run.yml down
-docker compose -f docker-compose.run.yml up
+docker compose -f docker-compose.yml down
+docker compose -f docker-compose.yml up
 ```
 
 ### Running in Browser without VNC Viewer without quickstart script
