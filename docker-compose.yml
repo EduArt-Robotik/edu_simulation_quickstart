@@ -1,14 +1,15 @@
 
 
 services:
-  ros2-vnc:
+  ros2-simulation:
     image: ros2-vnc
-    container_name: ros2-vnc
+    user: user
+    container_name: ros2-simulation
     ports:
       - "8080:8080"
       - "5900:5900"
     shm_size: "2g"
-    tty: true        # entspricht -t
-    stdin_open: true # entspricht -i
+    tty: true        # equivalent to -t
+    stdin_open: true # equivalent to -i
     restart: unless-stopped
     command: bash -c '/usr/bin/supervisord -c /home/user/supervisor/supervisord.conf'
