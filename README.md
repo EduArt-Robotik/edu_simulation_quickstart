@@ -41,3 +41,8 @@ docker run -it \
 ```
 docker rm -f ros2-vnc-test
 ```
+
+Oder
+```
+docker rm -f ros2-vnc
+```
