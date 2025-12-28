@@ -8,14 +8,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Create user
 RUN useradd -m user -s /bin/bash && echo "user:user" | chpasswd && adduser user sudo
+
+# -------------------------------------------------------------------
+# Install dependencies (as root)
+# -------------------------------------------------------------------
+
 USER root
 
-
-# -------------------------------------------------------------------
-# Install dependencies
-# -------------------------------------------------------------------
-
-RUN apt update &&  apt install -y \
+RUN apt update && apt install -y \
     tmux git openssh-client gdb build-essential software-properties-common swig
 
 RUN apt-get update && apt-get install -y \
@@ -26,7 +26,7 @@ RUN apt update && apt install -y \
     sudo net-tools curl wget
 
 # Install GPIO MRAA lib for edu_robot_control_template
-# Build and install MRAA from source
+# Build and install MRAA from source (as root)
 RUN git clone https://github.com/eclipse/mraa.git /opt/mraa \
     && cd /opt/mraa && mkdir build && cd build \
     && cmake .. -DBUILDSWIGPYTHON=ON \
@@ -34,7 +34,7 @@ RUN git clone https://github.com/eclipse/mraa.git /opt/mraa \
     && ldconfig \
     && rm -rf /opt/mraa
 
-# Install edu_robot dependencies
+# Install edu_robot dependencies (as root)
 RUN apt update \
     && apt install -y \
     ros-jazzy-rmw-cyclonedds-cpp \
@@ -49,74 +49,86 @@ RUN apt update \
     ros-jazzy-xacro \
     ros-jazzy-rviz2
 
-# Create virtual environment with python modules for edu_virtual_joy
+# -------------------------------------------------------------------
+# Create user-owned directories BEFORE switching user
+# (this is the core fix so git pull works later)
+# -------------------------------------------------------------------
+RUN mkdir -p /home/user/python_env \
+    && mkdir -p /home/user/ros2_ws/src \
+    && mkdir -p /home/user/supervisor/logs /home/user/supervisor/run \
+    && chown -R user:user /home/user
+
+# -------------------------------------------------------------------
+# Everything that should be writable/pullable by "user"
+# -------------------------------------------------------------------
+USER user
+WORKDIR /home/user
+
+# Create virtual environment with python modules for edu_virtual_joy (as user)
 RUN bash -c "\
-    mkdir /home/user/python_env -p \
-    && cd /home/user/python_env \
+    cd /home/user/python_env \
     && python3 -m venv .flet \
     && source .flet/bin/activate \
     && pip3 install flet setuptools pyyaml \
     && pip install 'flet[all]==0.25.1' --upgrade"
 
-
 # -------------------------------------------------------------------
-# Install packages for simulation
+# Install packages for simulation (as user so repos are owned by user)
 # -------------------------------------------------------------------
 
-# Create Ros2 workspace
-RUN mkdir /home/user/ros2_ws/src -p
 WORKDIR /home/user/ros2_ws
 
 # Get edu_robot package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone https://github.com/EduArt-Robotik/edu_robot.git src/edu_robot\
+    && git clone https://github.com/EduArt-Robotik/edu_robot.git src/edu_robot \
     && colcon build --symlink-install --packages-select edu_robot --event-handlers console_direct+"
-    
+
 # Get edu_robot_control package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone https://github.com/EduArt-Robotik/edu_robot_control.git src/edu_robot_control\
+    && git clone https://github.com/EduArt-Robotik/edu_robot_control.git src/edu_robot_control \
     && colcon build --symlink-install --packages-select edu_robot_control --event-handlers console_direct+"
 
 # Get edu_robot_control_template package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone -b master https://github.com/EduArt-Robotik/edu_robot_control_template.git src/edu_robot_control_template\
+    && git clone -b master https://github.com/EduArt-Robotik/edu_robot_control_template.git src/edu_robot_control_template \
     && colcon build --symlink-install --packages-select edu_robot_control_template --event-handlers console_direct+"
 
 # Get edu_simulation package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone -b fix/RosGzBridge https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation\
+    && git clone -b atWork-sim https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation \
     && colcon build --symlink-install --packages-select edu_simulation --event-handlers console_direct+"
 
 # Get edu_virtual_joy package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone -b develop https://github.com/EduArt-Robotik/edu_virtual_joy.git src/edu_virtual_joy\
+    && git clone -b develop https://github.com/EduArt-Robotik/edu_virtual_joy.git src/edu_virtual_joy \
     && colcon build --symlink-install --packages-select edu_virtual_joy --event-handlers console_direct+"
 
 # Open virtual joystick in a window, not in the browser
-RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets_dir="assets")\ft.app(target=main, assets_dir="assets")\g' /home/user/ros2_ws/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
-
+RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets_dir="assets")\ft.app(target=main, assets_dir="assets")\g' \
+    /home/user/ros2_ws/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
 
 # -------------------------------------------------------------------
-# Copy scripts in the container
+# Copy scripts in the container (requires root for system paths)
 # -------------------------------------------------------------------
+USER root
 
 # Using own background image for XFCE by replacing the default background image.
 COPY Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.svg
 
 # VNC setup
-RUN mkdir -p /home/user/supervisor/logs /home/user/supervisor/run && \
-    chown -R user:user /home/user/supervisor
 COPY --chown=user:user supervisord.conf /home/user/supervisor/supervisord.conf
 
 # Copy script to start the simulation
 COPY start-simulation.sh /usr/local/bin/start-simulation.sh
 RUN chmod +x /usr/local/bin/start-simulation.sh
 
+# Make sure home content stays owned by user after root copies
+RUN chown -R user:user /home/user
 
 # -------------------------------------------------------------------
 # Configure the user space
@@ -135,7 +147,6 @@ RUN echo "set -g mouse on" >> ~/.tmux.conf
 # Source ROS files
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 RUN echo "source /home/user/ros2_ws/install/setup.bash" >> ~/.bashrc
-
 
 # -------------------------------------------------------------------
 # Environment variables

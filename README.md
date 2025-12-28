@@ -6,6 +6,12 @@
 docker build --platform=linux/amd64 -t ros2-vnc .
 ```
 
+oder ohne cache:
+
+```
+docker build --no-cache --platform=linux/amd64 -t ros2-vnc .
+```
+
 ## Running with Quickstart Skript
 ```
 docker compose -f docker-compose.yml up

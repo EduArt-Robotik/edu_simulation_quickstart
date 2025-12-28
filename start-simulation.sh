@@ -18,12 +18,17 @@ if [ -z "$TMUX" ]; then
   # Pane 2 (unten links)
   tmux select-pane -t 2
   tmux select-pane -T "3. Add Eduard"
-  tmux send-keys "sleep 5 && ros2 launch edu_simulation eduard.launch.py wheel_type:=mecanum pos_x:=0.0 pos_y:=0.0 pos_z:=0.04 yaw:=0.0 edu_robot_namespace:=eduard/blue" C-m
+  tmux send-keys "COLOR=red
+sleep 5 && ros2 launch edu_simulation eduard.launch.py \
+  edu_robot_namespace:=eduard/${COLOR} \
+  wheel_type:=mecanum \
+  eduard_color:=${COLOR} \
+  pos_x:=0.0 pos_y:=0.0 pos_z:=0.04 yaw:=0.0" C-m
 
   # Pane 3 (unten rechts)
   tmux select-pane -t 3
   tmux select-pane -T "4. Start RViz"
-  tmux send-keys "ros2 launch edu_simulation eduard_monitor.launch.py edu_robot_namespace:=eduard/blue"
+  tmux send-keys "ros2 launch edu_simulation eduard_monitor.launch.py edu_robot_namespace:=eduard/blue" C-m
 
   tmux select-pane -t 0
   tmux attach-session -t default
