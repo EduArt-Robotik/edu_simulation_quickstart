@@ -41,3 +41,13 @@ docker run -it \
 ```
 docker rm -f ros2-vnc-test
 ```
+
+# Navigation
+
+EDU_ROBOT_NAMESPACE=eduard/blue ros2 launch ~/workspace/ros2_ws/src/navigation/launch/localization.launch.py
+
+ros2 service call /eduard/blue/slam_toolbox/save_map slam_toolbox/srv/SaveMap "name: data: '/home/user/workspace/maps/simulation_maze/map'"
+
+EDU_ROBOT_NAMESPACE=eduard/blue MAP_FILE=/home/user/workspace/maps/simulation_maze/map.yaml ros2 launch ~/workspace/ros2_ws/src/navigation/launch/localization.launch.py use_sim_time:=True
+
+EDU_ROBOT_NAMESPACE=eduard/blue ros2 launch ~/workspace/ros2_ws/src/navigation/launch/navigation.launch.py use_sim_time:=True
