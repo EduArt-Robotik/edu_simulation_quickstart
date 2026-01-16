@@ -47,7 +47,13 @@ RUN apt update \
     ros-jazzy-ros-gz-sim \
     ros-jazzy-ros-gz \
     ros-jazzy-xacro \
-    ros-jazzy-rviz2
+    ros-jazzy-rviz2 \
+    ros-jazzy-navigation2 \
+    ros-jazzy-nav2-bringup
+
+# Convenience
+RUN apt-get update && apt-get install -y \
+    nano
 
 # Create virtual environment with python modules for edu_virtual_joy
 RUN bash -c "\
@@ -88,7 +94,7 @@ RUN bash -c "\
 # Get edu_simulation package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone -b fix/RosGzBridge https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation\
+    && git clone -b main https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation\
     && colcon build --symlink-install --packages-select edu_simulation --event-handlers console_direct+"
 
 # Get edu_virtual_joy package
@@ -117,6 +123,7 @@ COPY --chown=user:user supervisord.conf /home/user/supervisor/supervisord.conf
 COPY start-simulation.sh /usr/local/bin/start-simulation.sh
 RUN chmod +x /usr/local/bin/start-simulation.sh
 
+RUN chown user /home/user/ -R
 
 # -------------------------------------------------------------------
 # Configure the user space
