@@ -13,14 +13,13 @@ RUN useradd -m user -s /bin/bash && echo "user:user" | chpasswd && adduser user 
 USER root
 
 RUN apt update && apt install -y \
-    tmux git openssh-client gdb build-essential software-properties-common swig
+    sudo tmux git nano gdb build-essential net-tools openssh-client software-properties-common swig
 
 RUN apt-get update && apt-get install -y \
     python3-pip python3.12-venv python3-pip
 
 RUN apt update && apt install -y \
-    xfce4 xfce4-terminal x11vnc xvfb novnc websockify supervisor dbus-x11 \
-    sudo net-tools curl wget
+    xfce4 xfce4-terminal x11vnc xvfb novnc websockify supervisor dbus-x11 curl wget
 
 # Install GPIO MRAA lib for edu_robot_control_template
 # Build and install MRAA from source
@@ -44,26 +43,14 @@ RUN apt update \
     ros-jazzy-ros-gz-sim \
     ros-jazzy-ros-gz \
     ros-jazzy-xacro \
-    ros-jazzy-rviz2
+    ros-jazzy-rviz2 \
+    ros-jazzy-navigation2 \
+    ros-jazzy-nav2-bringup
 
 # -------------------------------------------------------------------
-# Set up user workspace
+# Switch to user to set up the workspace
 # -------------------------------------------------------------------
 USER user
-WORKDIR /home/user
-
-# Set up directories
-RUN mkdir -p /home/user/python_env \
-    &&  \
-    && 
-
-# Create virtual environment with python modules for edu_virtual_joy
-RUN bash -c "\
-    cd /home/user/python_env \
-    && python3 -m venv .flet \
-    && source .flet/bin/activate \
-    && pip3 install flet setuptools pyyaml \
-    && pip install 'flet[all]==0.25.1' --upgrade"
 
 # -------------------------------------------------------------------
 # Install packages for simulation
@@ -106,9 +93,19 @@ RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets
     /home/user/ros2_ws/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
 
 # -------------------------------------------------------------------
+# Create virtual environments
+# -------------------------------------------------------------------
+RUN bash -c "\
+    mkdir -p /home/user/python_env \
+    && cd /home/user/python_env \
+    && python3 -m venv .flet \
+    && source .flet/bin/activate \
+    && pip3 install flet setuptools pyyaml \
+    && pip install 'flet[all]==0.25.1' --upgrade"
+
+# -------------------------------------------------------------------
 # Copy scripts in the container
 # -------------------------------------------------------------------
-
 # Using own background image for XFCE by replacing the default background image.
 COPY Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.svg
 
@@ -117,18 +114,12 @@ RUN mkdir -p /home/user/supervisor/logs /home/user/supervisor/run
 COPY --chown=user:user supervisord.conf /home/user/supervisor/supervisord.conf
 
 # Copy script to start the simulation
-COPY start-simulation.sh /usr/local/bin/start-simulation.sh
-RUN chmod +x /usr/local/bin/start-simulation.sh
-
-# Make sure home content stays owned by user after root copies
-# RUN chown -R user:user /home/user
+COPY --chmod=755 start-simulation.sh /usr/local/bin/start-simulation.sh
 
 # -------------------------------------------------------------------
 # Configure the user space
 # -------------------------------------------------------------------
 WORKDIR /home/user
-ENV HOME=/home/user
-ENV USER=user
 
 # Configure tmux
 RUN touch ~/.tmux.conf
@@ -142,8 +133,12 @@ RUN echo "source /home/user/ros2_ws/install/setup.bash" >> ~/.bashrc
 # -------------------------------------------------------------------
 # Environment variables
 # -------------------------------------------------------------------
+# Configure user-space
+ENV HOME=/home/user
+ENV USER=user
+
 # Set Python environment
-ENV PYTHONPATH='/home/user/python_env/.flet/lib/python3.12/site-packages'
+# ENV PYTHONPATH='/home/user/python_env/.flet/lib/python3.12/site-packages'
 
 # Enable color on command prompt
 ENV TERM=xterm-256color

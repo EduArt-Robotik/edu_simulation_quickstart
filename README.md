@@ -52,3 +52,24 @@ Oder
 ```
 docker rm -f ros2-vnc
 ```
+# Navigation
+
+Run the localization without a known map -> Mapping (SLAM)
+```
+EDU_ROBOT_NAMESPACE=eduard/blue ros2 launch ~/workspace/ros2_ws/src/navigation/launch/localization.launch.py
+```
+
+Save the current map to a file
+```
+ros2 service call /eduard/blue/slam_toolbox/save_map slam_toolbox/srv/SaveMap "name: data: '/home/user/workspace/maps/simulation_maze/map'"
+```
+
+Run the localization with a known map
+```
+EDU_ROBOT_NAMESPACE=eduard/blue MAP_FILE=/home/user/workspace/maps/simulation_maze/map.yaml ros2 launch ~/workspace/ros2_ws/src/navigation/launch/localization.launch.py use_sim_time:=True
+```
+
+Run the navigation. Works best with a known map.
+```
+EDU_ROBOT_NAMESPACE=eduard/blue ros2 launch ~/workspace/ros2_ws/src/navigation/launch/navigation.launch.py use_sim_time:=True
+```

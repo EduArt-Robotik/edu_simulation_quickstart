@@ -13,3 +13,5 @@ services:
     stdin_open: true # equivalent to -i
     restart: unless-stopped
     command: bash -c '/usr/bin/supervisord -c /home/user/supervisor/supervisord.conf'
+    volumes: 
+      - ./workspace:/home/user/workspace
