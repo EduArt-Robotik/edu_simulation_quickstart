@@ -5,14 +5,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 # -------------------------------------------------------------------
 # Create custom user and configure the user settings
 # -------------------------------------------------------------------
-
-# Create user
 RUN useradd -m user -s /bin/bash && echo "user:user" | chpasswd && adduser user sudo
 
 # -------------------------------------------------------------------
 # Install dependencies (as root)
 # -------------------------------------------------------------------
-
 USER root
 
 RUN apt update && apt install -y \
@@ -26,7 +23,7 @@ RUN apt update && apt install -y \
     sudo net-tools curl wget
 
 # Install GPIO MRAA lib for edu_robot_control_template
-# Build and install MRAA from source (as root)
+# Build and install MRAA from source
 RUN git clone https://github.com/eclipse/mraa.git /opt/mraa \
     && cd /opt/mraa && mkdir build && cd build \
     && cmake .. -DBUILDSWIGPYTHON=ON \
@@ -34,7 +31,7 @@ RUN git clone https://github.com/eclipse/mraa.git /opt/mraa \
     && ldconfig \
     && rm -rf /opt/mraa
 
-# Install edu_robot dependencies (as root)
+# Install edu_robot dependencies
 RUN apt update \
     && apt install -y \
     ros-jazzy-rmw-cyclonedds-cpp \
@@ -50,21 +47,17 @@ RUN apt update \
     ros-jazzy-rviz2
 
 # -------------------------------------------------------------------
-# Create user-owned directories BEFORE switching user
-# (this is the core fix so git pull works later)
-# -------------------------------------------------------------------
-RUN mkdir -p /home/user/python_env \
-    && mkdir -p /home/user/ros2_ws/src \
-    && mkdir -p /home/user/supervisor/logs /home/user/supervisor/run \
-    && chown -R user:user /home/user
-
-# -------------------------------------------------------------------
-# Everything that should be writable/pullable by "user"
+# Set up user workspace
 # -------------------------------------------------------------------
 USER user
 WORKDIR /home/user
 
-# Create virtual environment with python modules for edu_virtual_joy (as user)
+# Set up directories
+RUN mkdir -p /home/user/python_env \
+    &&  \
+    && 
+
+# Create virtual environment with python modules for edu_virtual_joy
 RUN bash -c "\
     cd /home/user/python_env \
     && python3 -m venv .flet \
@@ -73,9 +66,9 @@ RUN bash -c "\
     && pip install 'flet[all]==0.25.1' --upgrade"
 
 # -------------------------------------------------------------------
-# Install packages for simulation (as user so repos are owned by user)
+# Install packages for simulation
 # -------------------------------------------------------------------
-
+RUN mkdir -p /home/user/ros2_ws/src
 WORKDIR /home/user/ros2_ws
 
 # Get edu_robot package
@@ -113,14 +106,14 @@ RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets
     /home/user/ros2_ws/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
 
 # -------------------------------------------------------------------
-# Copy scripts in the container (requires root for system paths)
+# Copy scripts in the container
 # -------------------------------------------------------------------
-USER root
 
 # Using own background image for XFCE by replacing the default background image.
 COPY Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.svg
 
 # VNC setup
+RUN mkdir -p /home/user/supervisor/logs /home/user/supervisor/run
 COPY --chown=user:user supervisord.conf /home/user/supervisor/supervisord.conf
 
 # Copy script to start the simulation
@@ -128,13 +121,11 @@ COPY start-simulation.sh /usr/local/bin/start-simulation.sh
 RUN chmod +x /usr/local/bin/start-simulation.sh
 
 # Make sure home content stays owned by user after root copies
-RUN chown -R user:user /home/user
+# RUN chown -R user:user /home/user
 
 # -------------------------------------------------------------------
 # Configure the user space
 # -------------------------------------------------------------------
-
-USER user
 WORKDIR /home/user
 ENV HOME=/home/user
 ENV USER=user
@@ -151,7 +142,6 @@ RUN echo "source /home/user/ros2_ws/install/setup.bash" >> ~/.bashrc
 # -------------------------------------------------------------------
 # Environment variables
 # -------------------------------------------------------------------
-
 # Set Python environment
 ENV PYTHONPATH='/home/user/python_env/.flet/lib/python3.12/site-packages'
 
