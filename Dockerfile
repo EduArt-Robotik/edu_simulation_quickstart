@@ -107,14 +107,14 @@ RUN bash -c "\
 # Copy scripts in the container
 # -------------------------------------------------------------------
 # Using own background image for XFCE by replacing the default background image.
-COPY Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.svg
+COPY docker_setup/Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.svg
 
 # VNC setup
 RUN mkdir -p /home/user/supervisor/logs /home/user/supervisor/run
-COPY --chown=user:user supervisord.conf /home/user/supervisor/supervisord.conf
+COPY --chown=user:user docker_setup/supervisord.conf /home/user/supervisor/supervisord.conf
 
 # Copy script to start the simulation
-COPY --chmod=755 start-simulation.sh /usr/local/bin/start-simulation.sh
+COPY --chmod=755 docker_setup/start-simulation.sh /usr/local/bin/start-simulation.sh
 
 # -------------------------------------------------------------------
 # Configure the user space
