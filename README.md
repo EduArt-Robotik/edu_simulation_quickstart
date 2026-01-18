@@ -52,6 +52,15 @@ Oder
 ```
 docker rm -f ros2-vnc
 ```
+
+# Create new nodes
+```
+cd /home/user/workspace/ros2_ws/src
+ros2 pkg create --build-type ament_python edu_template --license MIT --node-name dont_hit_the_wall_node
+cd ..
+colcon build --symlink-install --packages-select edu_template --event-handlers console_direct+
+```
+
 # Navigation
 
 Run the localization without a known map -> Mapping (SLAM)
