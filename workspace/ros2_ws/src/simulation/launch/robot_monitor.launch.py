@@ -25,7 +25,7 @@ def generate_launch_description():
       launch_dir,
       '..',
       'rviz',
-      'atwork_sim_simple.rviz'
+      'robot_monitor_simple.rviz'
     )
 
     rviz_node = Node(
