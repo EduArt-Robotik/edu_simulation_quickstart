@@ -113,8 +113,9 @@ COPY docker_setup/Docker-Background.svg /usr/share/backgrounds/xfce/xfce-shapes.
 RUN mkdir -p /home/user/supervisor/logs /home/user/supervisor/run
 COPY --chown=user:user docker_setup/supervisord.conf /home/user/supervisor/supervisord.conf
 
-# Copy script to start the simulation
+# Copy start scripts for the simulation
 COPY --chmod=755 docker_setup/start-simulation.sh /usr/local/bin/start-simulation.sh
+COPY --chmod=755 docker_setup/start-navigation.sh /usr/local/bin/start-navigation.sh
 
 # -------------------------------------------------------------------
 # Configure the user space
