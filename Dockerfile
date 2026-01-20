@@ -13,13 +13,13 @@ RUN useradd -m user -s /bin/bash && echo "user:user" | chpasswd && adduser user 
 USER root
 
 RUN apt update && apt install -y \
-    sudo tmux git nano gdb build-essential net-tools openssh-client software-properties-common swig
+    sudo tmux git nano gdb build-essential net-tools openssh-client software-properties-common swig 
 
 RUN apt-get update && apt-get install -y \
     python3-pip python3.12-venv python3-pip
 
 RUN apt update && apt install -y \
-    xfce4 xfce4-terminal x11vnc xvfb novnc websockify supervisor dbus-x11 curl wget
+    xfce4 xfce4-terminal x11vnc xvfb novnc websockify supervisor dbus-x11 curl wget mousepad
 
 # Install GPIO MRAA lib for edu_robot_control_template
 # Build and install MRAA from source
@@ -144,3 +144,45 @@ ENV USER=user
 # Enable color on command prompt
 ENV TERM=xterm-256color
 ENV color_prompt=yes
+
+
+
+# -------------------------------------------------------------------
+# Create useful terminal commands cheat sheet on Desktop
+# -------------------------------------------------------------------
+RUN mkdir -p /home/user/Desktop && cat > /home/user/Desktop/useful_terminal_commands.txt <<'EOF'
+# START SIMULATION
+
+start-simulation.sh
+
+# START NAVIGATION
+
+start-navigation.sh
+
+# UPDATE EDU SIMULATION REPO
+
+cd ~/ros2_ws/src/edu_simulation && git pull
+
+# BUILD EDU SIMULATION REPO AGAIN
+
+cd ~/ros2_ws && source /opt/ros/jazzy/setup.bash && colcon build --symlink-install --packages-select edu_simulation --event-handlers console_direct+
+
+# START GAZEBO SIM WITH MAZE WORLD
+
+ros2 launch edu_simulation gazebo.launch.py world:=maze.world
+
+# START VIRTUAL JOY
+
+PYTHONPATH=/home/user/python_env/.flet/lib/python3.12/site-packages:$PYTHONPATH ros2 run edu_virtual_joy virtual_joy --ros-args -r __ns:=/eduard_atwork
+
+# LAUNCH EDUARD ATWORK IN SIMULATION
+
+ros2 launch edu_simulation eduard_atwork.launch.py pos_x:=0.0 pos_y:=0.0 pos_z:=0.04 yaw:=0.0
+
+# START RVIZ / MONITOR
+
+ros2 launch edu_simulation eduard_monitor.launch.py
+EOF
+
+
+
