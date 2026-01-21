@@ -86,27 +86,27 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        eduard/blue/base_link:
+        eduard/green/base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        eduard/blue/wheel_front_left:
+        eduard/green/wheel_front_left:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        eduard/blue/wheel_front_right:
+        eduard/green/wheel_front_right:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        eduard/blue/wheel_rear_left:
+        eduard/green/wheel_rear_left:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        eduard/blue/wheel_rear_right:
+        eduard/green/wheel_rear_right:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -295,13 +295,13 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/map
+            Value: /eduard/green/map
           Update Topic:
             Depth: 5
             Durability Policy: System Default
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/map_updates
+            Value: /eduard/green/map_updates
           Use Timestamp: false
           Value: true
       Enabled: true
@@ -322,13 +322,13 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/global_costmap/costmap
+            Value: /eduard/green/global_costmap/costmap
           Update Topic:
             Depth: 5
             Durability Policy: Volatile
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/global_costmap/costmap_updates
+            Value: /eduard/green/global_costmap/costmap_updates
           Use Timestamp: false
           Value: true
         - Alpha: 0.699999988079071
@@ -345,13 +345,13 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/local_costmap/costmap
+            Value: /eduard/green/local_costmap/costmap
           Update Topic:
             Depth: 5
             Durability Policy: Volatile
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/local_costmap/costmap_updates
+            Value: /eduard/green/local_costmap/costmap_updates
           Use Timestamp: false
           Value: true
         - Alpha: 1
@@ -380,7 +380,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/plan
+            Value: /eduard/green/plan
           Value: true
         - Alpha: 1
           Buffer Length: 1
@@ -408,14 +408,14 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /eduard/blue/local_plan
+            Value: /eduard/green/local_plan
           Value: true
       Enabled: true
       Name: Navigation
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: eduard/blue/map
+    Fixed Frame: eduard/green/map
     Frame Rate: 30
   Name: root
   Tools:
