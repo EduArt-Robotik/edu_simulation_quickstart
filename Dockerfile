@@ -1,11 +1,12 @@
-FROM osrf/ros:jazzy-desktop
+#FROM osrf/ros:jazzy-desktop
+FROM eduartrobotik/eduart-nodered:0.4.0
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # -------------------------------------------------------------------
 # Create custom user and configure the user settings
 # -------------------------------------------------------------------
-RUN useradd -m user -s /bin/bash && echo "user:user" | chpasswd && adduser user sudo
+# RUN useradd -m user -s /bin/bash && echo "user:user" | chpasswd && adduser user sudo
 
 # -------------------------------------------------------------------
 # Install dependencies (as root)
@@ -31,8 +32,18 @@ RUN git clone https://github.com/eclipse/mraa.git /opt/mraa \
     && rm -rf /opt/mraa
 
 # Install edu_robot dependencies
-RUN apt update \
-    && apt install -y \
+## Fix wrong ROS sources list entries by removing old version and adding the latest one using the ros-apt-source package
+RUN rm /etc/apt/sources.list.d/ros2.list \
+    && apt-get update \
+    && export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') \
+    && curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo ${UBUNTU_CODENAME:-${VERSION_CODENAME}})_all.deb" \
+    && sudo dpkg -i /tmp/ros2-apt-source.deb \
+    && apt-get update \
+    && apt-get install -y apt-utils \
+    && apt-get upgrade -y
+
+RUN apt-get update \
+    && apt-get install -y \
     ros-jazzy-rmw-cyclonedds-cpp \
     ros-jazzy-hardware-interface \
     ros-jazzy-diagnostic-updater \
@@ -45,7 +56,8 @@ RUN apt update \
     ros-jazzy-xacro \
     ros-jazzy-rviz2 \
     ros-jazzy-navigation2 \
-    ros-jazzy-nav2-bringup
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-slam-toolbox
 
 # -------------------------------------------------------------------
 # Switch to user to set up the workspace
@@ -61,7 +73,7 @@ WORKDIR /home/user/ros2_ws
 # Get edu_robot package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone https://github.com/EduArt-Robotik/edu_robot.git src/edu_robot \
+    && git clone --branch develop https://github.com/EduArt-Robotik/edu_robot.git src/edu_robot \
     && colcon build --symlink-install --packages-select edu_robot --event-handlers console_direct+"
 
 # Get edu_robot_control package
@@ -79,7 +91,7 @@ RUN bash -c "\
 # Get edu_simulation package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone -b atWork-sim https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation \
+    && git clone -b main https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation \
     && colcon build --symlink-install --packages-select edu_simulation --event-handlers console_direct+"
 
 # Get edu_virtual_joy package

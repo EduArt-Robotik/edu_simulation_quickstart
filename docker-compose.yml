@@ -1,13 +1,14 @@
-
-
 services:
   ros2-simulation:
-    image: ros2-vnc
+    # image: ros2-vnc
+    build:
+      dockerfile: ./Dockerfile
     user: user
     container_name: ros2-simulation
     ports:
       - "8080:8080"
       - "5900:5900"
+      - "1880:1880"
     shm_size: "2g"
     tty: true        # equivalent to -t
     stdin_open: true # equivalent to -i
@@ -15,3 +16,7 @@ services:
     command: bash -c '/usr/bin/supervisord -c /home/user/supervisor/supervisord.conf'
     volumes: 
       - ./workspace:/home/user/workspace
+      - node_red_user_data:/data:rw
+
+volumes:
+    node_red_user_data:
