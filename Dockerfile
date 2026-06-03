@@ -52,58 +52,58 @@ RUN apt update \
 ### ### ### NODE RED ### ### 
 
 
-# Install Integration Service dependencies
-RUN apt-get update \
-    && apt-get remove -y \
-        nodejs \
-        libnode-dev \
-        libnode72 \
-    && apt-get install -y \
-        cmake \
-        curl \
-        g++ \
-        gcc \
-        make \
-        git \
-        libasio-dev \
-        libboost-dev \
-        libboost-program-options-dev \
-        libboost-system-dev \
-        libcurl4-openssl-dev \
-        libcurlpp-dev \
-        libssl-dev \
-        libwebsocketpp-dev \
-        libyaml-cpp-dev \
-        wget \
-        python3-colcon-common-extensions \
-        python3-vcstool \
-    && curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.bash && \
-    chmod +x nodesource_setup.bash && \
-    bash -c ./nodesource_setup.bash && \
-    apt-get install -y \
-        nodejs \
-        ros-jazzy-turtlesim \
-        ros-jazzy-control-msgs \
-        ros-jazzy-nav2-msgs \
-        ros-jazzy-aruco-opencv-msgs \
-        ros-jazzy-zbar-ros-interfaces
+# # Install Integration Service dependencies
+# RUN apt-get update \
+#     && apt-get remove -y \
+#         nodejs \
+#         libnode-dev \
+#         libnode72 \
+#     && apt-get install -y \
+#         cmake \
+#         curl \
+#         g++ \
+#         gcc \
+#         make \
+#         git \
+#         libasio-dev \
+#         libboost-dev \
+#         libboost-program-options-dev \
+#         libboost-system-dev \
+#         libcurl4-openssl-dev \
+#         libcurlpp-dev \
+#         libssl-dev \
+#         libwebsocketpp-dev \
+#         libyaml-cpp-dev \
+#         wget \
+#         python3-colcon-common-extensions \
+#         python3-vcstool \
+#     && curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.bash && \
+#     chmod +x nodesource_setup.bash && \
+#     bash -c ./nodesource_setup.bash && \
+#     apt-get install -y \
+#         nodejs \
+#         ros-jazzy-turtlesim \
+#         ros-jazzy-control-msgs \
+#         ros-jazzy-nav2-msgs \
+#         ros-jazzy-aruco-opencv-msgs \
+#         ros-jazzy-zbar-ros-interfaces
 
 
 
 
-# Install Node-RED and node-red-ros2-plugin
-RUN bash -c "source /opt/ros/jazzy/setup.bash \
-    && npm install -g --unsafe-perm \
-        rimraf \
-        uuid \
-        node-red \
-        rclnodejs \
-        cron"
+# # Install Node-RED and node-red-ros2-plugin
+# RUN bash -c "source /opt/ros/jazzy/setup.bash \
+#     && npm install -g --unsafe-perm \
+#         rimraf \
+#         uuid \
+#         node-red \
+#         rclnodejs \
+#         cron"
 
 
-RUN echo "creating storage for flow data" \
-    && mkdir -p /data \
-    && chmod a+w /data
+# RUN echo "creating storage for flow data" \
+#     && mkdir -p /data \
+#     && chmod a+w /data
 
 
 
@@ -151,24 +151,24 @@ RUN bash -c "\
     && colcon build --symlink-install --packages-select edu_virtual_joy --event-handlers console_direct+"
 
 
-# Coping and Installing ROS2 Plugin
-RUN bash -c "\
-    source /opt/ros/jazzy/setup.bash \
-    && git clone -b master https://github.com/EduArt-Robotik/edu_nodered_ros2_plugin.git \
-    && chown -R user:user edu_nodered_ros2_plugin"
+# # Coping and Installing ROS2 Plugin
+# RUN bash -c "\
+#     source /opt/ros/jazzy/setup.bash \
+#     && git clone -b master https://github.com/EduArt-Robotik/edu_nodered_ros2_plugin.git \
+#     && chown -R user:user edu_nodered_ros2_plugin"
 
 # Open virtual joystick in a window, not in the browser
 RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets_dir="assets")\ft.app(target=main, assets_dir="assets")\g' \
     /home/user/ros2/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
 
-USER root 
+# USER root 
 
-RUN echo "installing plugins" \
-    # instlling dashboad
-    && npm install -g node-red-dashboard \
-    && npm install -g ./edu_nodered_ros2_plugin
+# RUN echo "installing plugins" \
+#     # instlling dashboad
+#     && npm install -g node-red-dashboard \
+#     && npm install -g ./edu_nodered_ros2_plugin
 
-USER user
+# USER user
 
 
 
