@@ -47,6 +47,68 @@ RUN apt update \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup
 
+
+
+### ### ### NODE RED ### ### 
+
+
+# Install Integration Service dependencies
+RUN apt-get update \
+    && apt-get remove -y \
+        nodejs \
+        libnode-dev \
+        libnode72 \
+    && apt-get install -y \
+        cmake \
+        curl \
+        g++ \
+        gcc \
+        make \
+        git \
+        libasio-dev \
+        libboost-dev \
+        libboost-program-options-dev \
+        libboost-system-dev \
+        libcurl4-openssl-dev \
+        libcurlpp-dev \
+        libssl-dev \
+        libwebsocketpp-dev \
+        libyaml-cpp-dev \
+        wget \
+        python3-colcon-common-extensions \
+        python3-vcstool \
+    && curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.bash && \
+    chmod +x nodesource_setup.bash && \
+    bash -c ./nodesource_setup.bash && \
+    apt-get install -y \
+        nodejs \
+        ros-jazzy-turtlesim \
+        ros-jazzy-control-msgs \
+        ros-jazzy-nav2-msgs \
+        ros-jazzy-aruco-opencv-msgs \
+        ros-jazzy-zbar-ros-interfaces
+
+
+
+
+# Install Node-RED and node-red-ros2-plugin
+RUN bash -c "source /opt/ros/jazzy/setup.bash \
+    && npm install -g --unsafe-perm \
+        rimraf \
+        uuid \
+        node-red \
+        rclnodejs \
+        cron"
+
+
+RUN echo "creating storage for flow data" \
+    && mkdir -p /data \
+    && chmod a+w /data
+
+
+
+
+
 # -------------------------------------------------------------------
 # Switch to user to set up the workspace
 # -------------------------------------------------------------------
@@ -55,13 +117,13 @@ USER user
 # -------------------------------------------------------------------
 # Install packages for simulation
 # -------------------------------------------------------------------
-RUN mkdir -p /home/user/ros2_ws/src
-WORKDIR /home/user/ros2_ws
+RUN mkdir -p /home/user/ros2/src
+WORKDIR /home/user/ros2
 
 # Get edu_robot package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone https://github.com/EduArt-Robotik/edu_robot.git src/edu_robot \
+    && git clone -b develop https://github.com/EduArt-Robotik/edu_robot.git src/edu_robot \
     && colcon build --symlink-install --packages-select edu_robot --event-handlers console_direct+"
 
 # Get edu_robot_control package
@@ -79,7 +141,7 @@ RUN bash -c "\
 # Get edu_simulation package
 RUN bash -c "\
     source /opt/ros/jazzy/setup.bash \
-    && git clone -b atWork-sim https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation \
+    && git clone https://github.com/EduArt-Robotik/edu_simulation.git src/edu_simulation \
     && colcon build --symlink-install --packages-select edu_simulation --event-handlers console_direct+"
 
 # Get edu_virtual_joy package
@@ -88,9 +150,27 @@ RUN bash -c "\
     && git clone -b develop https://github.com/EduArt-Robotik/edu_virtual_joy.git src/edu_virtual_joy \
     && colcon build --symlink-install --packages-select edu_virtual_joy --event-handlers console_direct+"
 
+
+# Coping and Installing ROS2 Plugin
+RUN bash -c "\
+    source /opt/ros/jazzy/setup.bash \
+    && git clone -b master https://github.com/EduArt-Robotik/edu_nodered_ros2_plugin.git \
+    && chown -R user:user edu_nodered_ros2_plugin"
+
 # Open virtual joystick in a window, not in the browser
 RUN sed -i 's\ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8888, assets_dir="assets")\ft.app(target=main, assets_dir="assets")\g' \
-    /home/user/ros2_ws/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
+    /home/user/ros2/src/edu_virtual_joy/edu_virtual_joy/edu_virtual_joy.py
+
+USER root 
+
+RUN echo "installing plugins" \
+    # instlling dashboad
+    && npm install -g node-red-dashboard \
+    && npm install -g ./edu_nodered_ros2_plugin
+
+USER user
+
+
 
 # -------------------------------------------------------------------
 # Create virtual environments
@@ -119,6 +199,9 @@ COPY --chmod=755 docker_setup/start-navigation.sh /usr/local/bin/start-navigatio
 
 COPY --chown=user:user docker_setup/useful_terminal_commands.txt /home/user/Desktop/useful_terminal_commands.txt
 
+
+
+
 # -------------------------------------------------------------------
 # Configure the user space
 # -------------------------------------------------------------------
@@ -131,7 +214,7 @@ RUN echo "set -g mouse on" >> ~/.tmux.conf
 
 # Source ROS files
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
-RUN echo "source /home/user/ros2_ws/install/setup.bash" >> ~/.bashrc
+RUN echo "source /home/user/ros2/install/setup.bash" >> ~/.bashrc
 
 # -------------------------------------------------------------------
 # Environment variables
